@@ -6,7 +6,7 @@
 
 ## 📢 News
 
-- 🎉 **[2026]** Our paper has been accepted by **ICML 2026**. 👉 [[Paper]](https://arxiv.org/pdf/2604.13565)
+- 🎉🎉🎉 **[2026]** Our paper has been accepted by **ICML 2026**. 👉 [[Paper]](https://arxiv.org/pdf/2604.13565)
 - 🚀 The code will be released soon. Please stay tuned.
 
 ## 🔍 Introduction
