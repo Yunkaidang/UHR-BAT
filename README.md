@@ -1,4 +1,4 @@
-# 🌍 UHR-BAT: Budget-Aware Token Compression Vision-Language Model for Ultra-High-Resolution Remote Sensing
+## 🌍 UHR-BAT: Budget-Aware Token Compression Vision-Language Model for Ultra-High-Resolution Remote Sensing
 
 [![Paper](https://img.shields.io/badge/arXiv-2604.13565-b31b1b.svg)](https://arxiv.org/pdf/2604.13565)
 [![Conference](https://img.shields.io/badge/ICML-2026-blue.svg)]()
