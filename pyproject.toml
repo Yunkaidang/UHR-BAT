@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uhr-bat"
+version = "0.1.0"
+description = "Budget-aware token compression vision-language framework for ultra-high-resolution remote sensing."
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = [
+    "remote-sensing",
+    "vision-language-model",
+    "token-compression",
+    "ultra-high-resolution",
+    "longva",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+authors = [
+    { name = "Yunkai Dang" },
+    { name = "Minxin Dai" },
+]
+dependencies = [
+    "accelerate==0.34.2",
+    "datasets==2.16.1",
+    "deepspeed==0.14.5",
+    "numpy==1.26.4",
+    "pandas==2.2.3",
+    "pillow==11.0.0",
+    "tensorboard==2.19.0",
+    "tokenizers==0.19.1",
+    "tqdm==4.67.1",
+    "transformers==4.43.4",
+    "triton==2.1.0",
+    "einops==0.6.1",
+    "einops-exts==0.0.4",
+    "ftfy",
+    "huggingface_hub",
+    "httpx==0.24.0",
+    "open_clip_torch",
+    "packaging",
+    "peft==0.4.0",
+    "pydantic==1.10.8",
+    "PyYAML",
+    "requests",
+    "safetensors",
+    "scikit-learn==1.2.2",
+    "scipy",
+    "sentencepiece==0.1.99",
+    "shortuuid",
+    "timm",
+    "tyro",
+    "av",
+    "decord",
+    "opencv-python",
+    "wandb==0.16.5",
+]
+
+[project.optional-dependencies]
+lmms-eval = [
+    "lmms_eval @ git+https://github.com/EvolvingLMMs-Lab/lmms-eval.git",
+]
+web = [
+    "fastapi",
+    "gradio",
+    "gradio_client",
+    "markdown2[all]",
+    "uvicorn",
+]
+quant = [
+    "bitsandbytes==0.41.0",
+]
+sam = [
+    "safetensors",
+]
+kmeans = [
+    "scikit-learn==1.2.2",
+]
+dev = [
+    "black",
+    "build",
+]
+
+[project.scripts]
+uhr-bat-infer = "uhr_bat.infer:main"
+
+[project.entry-points."lmms_eval.models"]
+uhr_bat = "uhr_bat.lmms_eval_manifest:manifest"
+
+[project.urls]
+Homepage = "https://github.com/thinson/RS-PaperClaw/issues/353"
+Paper = "https://arxiv.org/abs/2604.13565"
+
+[tool.black]
+line-length = 240
+
+[tool.setuptools]
+
+[tool.setuptools.packages.find]
+include = ["uhr_bat*"]

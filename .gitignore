@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# Training / evaluation outputs
+outputs/
+checkpoint/
+checkpoints/
+project_checkpoints/
+debug_checkpoints/
+logs/
+result/
+results/
+runs/
+wandb/
+tensorboard/
+
+# Downloaded data and model weights
+data/
+UHR-BAT-Data/
+UHR-BAT/
+*.safetensors
+*.ckpt
+*.pth
+*.pt
+*.bin
+*.onnx
+
+# Native build products
+*.so
+*.dylib
+*.dll
+build/
+dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
