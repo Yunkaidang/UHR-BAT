@@ -113,11 +113,19 @@ huggingface-cli download RL-MIND/XHRBench \
   --local-dir data/XHRBench
 ```
 
+Prepare the released SFT annotations for training:
+
+```bash
+python scripts/prepare_uhrbat_sft.py \
+  --metadata data/UHR-BAT-SFT-10K/train/metadata.parquet \
+  --output data/UHR-BAT-SFT-10K/ft3_selected_10k.json
+```
+
 Notes on local layouts:
 
-- `RL-MIND/UHR-BAT-SFT-10K` is packaged as a Hugging Face dataset with `train/metadata.parquet` and `train/images/`.
-- The released training scripts expect a LongVA-style JSON file plus an image folder through `JSON_PATH` and `IMAGE_FOLDER`. If you use the Hugging Face SFT package directly, export or convert the parquet metadata to the JSON format expected by the training script, or point the paths to your prepared LongVA-style files.
-- `RL-MIND/XHRBench` includes `dataset.json` and an `images/` folder, which can be used with the evaluation scripts as `--data_json data/XHRBench/dataset.json` and `--image_root data/XHRBench/images`.
+- `RL-MIND/UHR-BAT-SFT-10K` is packaged as `train/metadata.parquet` and `train/images/`. Convert `metadata.parquet` to LongVA-style JSON before training, then use `IMAGE_FOLDER=data/UHR-BAT-SFT-10K/train/images`.
+- The released training scripts expect a LongVA-style JSON file plus an image folder through `JSON_PATH` and `IMAGE_FOLDER`.
+- `RL-MIND/XHRBench` includes `dataset.json` and an `images/` folder. Because `dataset.json` stores paths such as `images/xxx.png`, use `--image_root data/XHRBench`.
 - Model weights, datasets, checkpoints, and output folders are ignored by `.gitignore` and should not be committed to this repository.
 
 ## Quick Smoke Test
@@ -149,7 +157,7 @@ For a relative image path under XHRBench, pass the image root explicitly:
 ```bash
 uhr-bat-infer \
   --image <relative_image_path_from_dataset_json> \
-  --image-root data/XHRBench/images \
+  --image-root data/XHRBench \
   --question "Describe this remote-sensing image briefly." \
   --ckpt RL-MIND/UHR-BAT \
   --branch kmeans \
@@ -165,8 +173,8 @@ cd with-SAM/longva
 
 GPU_IDS=0,1,2,3 \
 RUN_NAME=uhr-bat-sam \
-JSON_PATH=/path/to/ft3_selected_10k.json \
-IMAGE_FOLDER=/path/to/jpg_images \
+JSON_PATH=../../data/UHR-BAT-SFT-10K/ft3_selected_10k.json \
+IMAGE_FOLDER=../../data/UHR-BAT-SFT-10K/train/images \
 MASK_ROOT=/path/to/multiscale_tiles_masks \
 CKPT_PATH=LongVA/LongVA-7B \
 LOG_DIR=../../outputs/train_logs \
@@ -192,7 +200,7 @@ cd with_k-means/longva
 python -u scripts/eval_xlrs_multiscale_to_json.py \
   --ckpt RL-MIND/UHR-BAT \
   --data_json ../../data/XHRBench/dataset.json \
-  --image_root ../../data/XHRBench/images \
+  --image_root ../../data/XHRBench \
   --output_json ../../outputs/xhrbench_kmeans_results.jsonl \
   --multiscale_topk 80,320,600,2000 \
   --kmeans_num_clusters 600 \
@@ -207,7 +215,7 @@ cd with-SAM/longva
 python -u scripts/eval_xlrs_multiscale_to_json.py \
   --ckpt RL-MIND/UHR-BAT \
   --data_json ../../data/XHRBench/dataset.json \
-  --image_root ../../data/XHRBench/images \
+  --image_root ../../data/XHRBench \
   --mask_root /path/to/xhrbench_multiscale_tile_masks \
   --output_json ../../outputs/xhrbench_sam_results.jsonl \
   --multiscale_topk 180,1320,1600,8000 \

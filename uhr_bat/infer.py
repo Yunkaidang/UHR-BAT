@@ -10,9 +10,10 @@ Example:
     --image /path/to/image.png \
     --question "What objects are in this remote-sensing image?"
 
-For XLRS-style images under UHR-BAT-Data/jpg_images you can pass a relative path:
+For XHRBench images under data/XHRBench you can pass a relative path:
   python -m uhr_bat.infer \
-    --image remote_sensing/dota_v2_dota_v2_dota_v2_P8504.png \
+    --image images/000000_1_1亿__14-2012-0415-6905-LA93-0M50-E080.jp2.png \
+    --image-root data/XHRBench \
     --question "Describe this satellite image."
 """
 
@@ -43,9 +44,24 @@ THIS_FILE = Path(__file__).resolve()
 PACKAGE_ROOT = THIS_FILE.parent
 CODE_ROOT = PACKAGE_ROOT.parent
 PROJECT_ROOT = CODE_ROOT.parent
-_LOCAL_CKPT = PROJECT_ROOT / "UHR-BAT"
-DEFAULT_CKPT = os.environ.get("UHR_BAT_CKPT") or (str(_LOCAL_CKPT) if _LOCAL_CKPT.exists() else "FelixKAI/UHR-BAT")
-DEFAULT_IMAGE_ROOT = os.environ.get("UHR_BAT_IMAGE_ROOT") or str(PROJECT_ROOT / "UHR-BAT-Data" / "jpg_images")
+DEFAULT_HF_CKPT = "RL-MIND/UHR-BAT"
+_LOCAL_CKPT_CANDIDATES = [
+    CODE_ROOT / "checkpoints" / "UHR-BAT",
+    PROJECT_ROOT / "UHR-BAT",
+]
+_LOCAL_IMAGE_ROOT_CANDIDATES = [
+    CODE_ROOT / "data" / "XHRBench",
+    CODE_ROOT / "data" / "UHR-BAT-SFT-10K" / "train" / "images",
+    PROJECT_ROOT / "UHR-BAT-Data" / "jpg_images",
+]
+DEFAULT_CKPT = os.environ.get("UHR_BAT_CKPT") or next(
+    (str(path) for path in _LOCAL_CKPT_CANDIDATES if path.exists()),
+    DEFAULT_HF_CKPT,
+)
+DEFAULT_IMAGE_ROOT = os.environ.get("UHR_BAT_IMAGE_ROOT") or next(
+    (str(path) for path in _LOCAL_IMAGE_ROOT_CANDIDATES if path.exists()),
+    str(CODE_ROOT / "data" / "XHRBench"),
+)
 DEFAULT_KMEANS_LONGVA = CODE_ROOT / "with_k-means" / "longva"
 DEFAULT_SAM_LONGVA = CODE_ROOT / "with-SAM" / "longva"
 

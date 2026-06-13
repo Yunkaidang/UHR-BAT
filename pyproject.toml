@@ -94,7 +94,7 @@ uhr-bat-infer = "uhr_bat.infer:main"
 uhr_bat = "uhr_bat.lmms_eval_manifest:manifest"
 
 [project.urls]
-Homepage = "https://github.com/thinson/RS-PaperClaw/issues/353"
+Homepage = "https://github.com/Yunkaidang/UHR-BAT"
 Paper = "https://arxiv.org/abs/2604.13565"
 
 [tool.black]

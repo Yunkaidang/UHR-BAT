@@ -211,6 +211,79 @@ def _extract_choice_set(text: Optional[str]) -> List[str]:
     return sorted(letters)
 
 
+def _format_options(options: Any) -> str:
+    if not options:
+        return ""
+    if isinstance(options, dict):
+        lines = []
+        for key in sorted(options.keys(), key=lambda x: str(x)):
+            label = str(key).strip().upper()
+            value = str(options[key]).strip()
+            if label and value:
+                lines.append(f"{label}. {value}")
+        return "\n".join(lines)
+    if isinstance(options, (list, tuple)):
+        lines = []
+        for idx, value in enumerate(options):
+            label = chr(ord("A") + idx)
+            lines.append(f"{label}. {str(value).strip()}")
+        return "\n".join(lines)
+    return str(options).strip()
+
+
+def extract_question_and_gt(sample: Dict) -> Tuple[List[str], str, Optional[str], List[str]]:
+    """
+    Support both legacy XLRS/MME-style samples and public XHRBench samples.
+
+    Legacy samples use `image` + `conversations`; XHRBench uses
+    `images` + `question` + `options` + `answer`.
+    """
+    image_field = sample.get("image", None)
+    if image_field is None:
+        image_field = sample.get("images", None)
+    rel_list = [image_field] if isinstance(image_field, str) else list(image_field or [])
+    if not rel_list:
+        raise ValueError("Sample missing image path.")
+
+    conversations = sample.get("conversations") or []
+    q_text = None
+    gt = None
+    for msg in conversations:
+        if not isinstance(msg, dict):
+            continue
+        if msg.get("from") == "human" and q_text is None:
+            q_text = msg.get("value", "")
+        if msg.get("from") == "gpt" and gt is None:
+            gt = str(msg.get("value", "")).strip()
+
+    if q_text is None and sample.get("question") is not None:
+        q_text = str(sample.get("question", "")).strip()
+        option_text = _format_options(sample.get("options"))
+        if option_text:
+            q_text = (
+                f"{q_text}\n{option_text}\n"
+                "Select the best answer based on the image. Answer with the option letter only."
+            )
+    if gt is None and sample.get("answer") is not None:
+        answer = sample.get("answer")
+        if isinstance(answer, (list, tuple)):
+            gt = "".join(str(x).strip() for x in answer)
+        else:
+            gt = str(answer).strip()
+
+    gt_choices = _extract_choice_set(gt)
+    if q_text is None:
+        raise ValueError("Missing question text. Expected conversations or question/options fields.")
+    if len(gt_choices) > 1 and isinstance(q_text, str):
+        marker = "Select the best answer based on the image."
+        if marker in q_text and "You should choose multiple answers" not in q_text:
+            q_text = q_text.replace(
+                marker,
+                marker + " You should choose multiple answers.",
+            )
+    return rel_list, q_text, gt, gt_choices
+
+
 def _safe_batch_decode(tokenizer, sequences, **decode_kwargs) -> List[str]:
     """
     Decode while replacing special image token ids (negative) with a safe placeholder to avoid None -> str errors.
@@ -559,33 +632,11 @@ def run_worker(
         sample = data[idx]
         try:
             start_time = _now_sync() if log_latency else None
-            image_field = sample.get("image")
-            rel_list = [image_field] if isinstance(image_field, str) else list(image_field or [])
-            if not rel_list:
-                raise ValueError("Sample missing image path.")
+            rel_list, q_text, gt, gt_choices = extract_question_and_gt(sample)
             abs_list = [os.path.join(args.image_root, rel) for rel in rel_list]
             for p in abs_list:
                 if not os.path.isfile(p):
                     raise FileNotFoundError(f"Image missing: {p}")
-
-            conversations = sample.get("conversations", [])
-            q_text = None
-            gt = None
-            for msg in conversations:
-                if msg.get("from") == "human" and q_text is None:
-                    q_text = msg.get("value", "")
-                if msg.get("from") == "gpt" and gt is None:
-                    gt = str(msg.get("value", "")).strip()
-            gt_choices = _extract_choice_set(gt)
-            if q_text is None:
-                raise ValueError("Missing human question in conversations")
-            if len(gt_choices) > 1 and isinstance(q_text, str):
-                marker = "Select the best answer based on the image."
-                if marker in q_text and "You should choose multiple answers" not in q_text:
-                    q_text = q_text.replace(
-                        marker,
-                        marker + " You should choose multiple answers.",
-                    )
 
             # Always build plain images first for fallback and base sizes
             pil_list = [Image.open(p).convert("RGB") for p in abs_list]
@@ -734,6 +785,7 @@ def run_worker(
             result = {
                 "id": sample.get("id"),
                 "images": rel_list,
+                "category": sample.get("category"),
                 "question": q_text,
                 "ground_truth": gt,
                 "model_output": clean_output,
@@ -752,7 +804,7 @@ def run_worker(
         except Exception as exc:
             err_obj = {
                 "id": sample.get("id"),
-                "images": sample.get("image"),
+                "images": sample.get("image") or sample.get("images"),
                 "error": str(exc),
                 "trace": traceback.format_exc(),
             }

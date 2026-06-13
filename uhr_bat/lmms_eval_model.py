@@ -100,7 +100,7 @@ class UHRBAT(lmms):
 
     def __init__(
         self,
-        pretrained: str = "FelixKAI/UHR-BAT",
+        pretrained: str = "RL-MIND/UHR-BAT",
         device: Optional[str] = "cuda:0",
         device_map: Optional[str] = None,
         batch_size: Optional[Union[int, str]] = 1,
